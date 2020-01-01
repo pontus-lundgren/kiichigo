@@ -5,7 +5,7 @@ Vagrant.configure("2") do |config|
   # config.vm.box = "generic/fedora28"
   config.vm.box = "f31-cloud-virtualbox"
   config.vm.box_url = "https://ftp.acc.umu.se/mirror/fedora/linux/releases/31/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-31-1.9.x86_64.vagrant-virtualbox.box"
-
+  config.ssh.insert_key = false
   # config.vm.box_check_update = false
 
    config.vm.network "forwarded_port", guest: 80, host: 80
@@ -20,9 +20,10 @@ Vagrant.configure("2") do |config|
 
   Dir.mkdir('.dnf-cache') unless File.exists?('.dnf-cache')
   config.vm.synced_folder ".dnf-cache", "/var/cache/dnf", type: "sshfs"
-
   config.vm.provision "shell", inline: <<-EOF
-    sudo dnf upgrade -y
+    systemctl is-system-running --wait
+    sudo dnf -y upgrade 
+    sudo dnf -y install libguestfs-tools-c
   EOF
   # sudo dnf -y install python2-dnf libselinux-python
 
@@ -30,14 +31,14 @@ Vagrant.configure("2") do |config|
       ansible.playbook = "devel/ansible/vagrant-playbook.yml"
   end
 
-  config.vm.define "nuancier" do |nuancier|
-     nuancier.vm.host_name = "nuancier-dev.example.com"
+  config.vm.define "podman" do |podman|
+     podman.vm.host_name = "podman-dev.example.com"
  
-     nuancier.vm.provider :virtualbox do |domain|
+     podman.vm.provider :virtualbox do |domain|
          # Season to taste
 #         domain.cpus = 4
 #         domain.graphics_type = "spice"
-#         domain.memory = 2048
+         domain.memory = 2048
 #         domain.video_type = "qxl"
  
          # Uncomment the following line if you would like to enable libvirt's unsafe cache
